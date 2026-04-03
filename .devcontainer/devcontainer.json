@@ -4,5 +4,8 @@
   "features": {
     "ghcr.io/devcontainers/features/terraform:1": {}
   },
-  "postCreateCommand": "pip install -r ingestion/requirements.txt"
+  "postCreateCommand": "pip install -r ingestion/requirements.txt",
+  "remoteEnv": {
+    "TF_VAR_credentials": "${localEnv:GCP_SERVICE_ACCOUNT_KEY}"
+  }
 }

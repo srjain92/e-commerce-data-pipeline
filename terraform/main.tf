@@ -10,6 +10,7 @@ terraform {
 provider "google" {
   project = var.project_id
   region  = var.region
+  credentials = var.credentials
 }
 
 # ── GCS Bucket ────────────────────────────────────────────────────────────────
@@ -34,17 +35,27 @@ resource "google_storage_bucket" "raw" {
 resource "google_bigquery_dataset" "raw" {
   dataset_id = "olist_raw"
   location   = var.region
+  project     = var.project_id
   description = "Raw data loaded directly from GCS"
 }
 
 resource "google_bigquery_dataset" "staging" {
   dataset_id  = "olist_staging"
   location    = var.region
+  project     = var.project_id
   description = "Cleaned and typed data"
+}
+
+resource "google_bigquery_dataset" "intermediate" {
+  dataset_id  = "olist_intermediate"
+  location    = var.region
+  project     = var.project_id
+  description = "Joined and enriched models"
 }
 
 resource "google_bigquery_dataset" "marts" {
   dataset_id  = "olist_marts"
   location    = var.region
+  project     = var.project_id
   description = "Business-level models"
 }

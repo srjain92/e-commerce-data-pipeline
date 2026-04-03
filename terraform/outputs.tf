@@ -10,6 +10,10 @@ output "staging_dataset" {
   value = google_bigquery_dataset.staging.dataset_id
 }
 
+output "intermediate_dataset" {
+  value = google_bigquery_dataset.intermediate.dataset_id
+}
+
 output "marts_dataset" {
   value = google_bigquery_dataset.marts.dataset_id
 }

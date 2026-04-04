@@ -210,4 +210,4 @@ __marimo__/
 *.tfstate.backup
 *.tfvars
 
-gcp-creds.json
+airflow/logs/

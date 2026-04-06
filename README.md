@@ -13,7 +13,7 @@ Build a scalable batch data pipeline on GCP to ingest, transform, and analyze Ol
 
 ## Architecture
 
-![Pipeline Architecture](docs/architecture.svg)
+![Pipeline Architecture](docs/ecommerce_pipeline_architecture.svg)
 
 ## Architecture
 ```

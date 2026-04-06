@@ -12,20 +12,8 @@ A production-grade batch data pipeline built on GCP that ingests, transforms, an
 Build a scalable batch data pipeline on GCP to ingest, transform, and analyze Olist e-commerce data — enabling visibility into order trends, delivery performance, and seller revenue through a structured data warehouse and dashboard.
 
 ## Architecture
-```mermaid
-flowchart TD
-    A[Kaggle - Olist dataset] --> B[Python ingestion script\nPartition by month, cast types, save Parquet]
-    B --> C[Google Cloud Storage\nraw/orders/, raw/static/]
-    C --> D[Apache Airflow\ndag_load_static + dag_gcs_to_bq]
-    D --> E[olist_raw\n9 raw tables]
-    E --> F[olist_staging\ndbt cleaning]
-    F --> G[olist_intermediate\ndbt joins]
-    G --> H[olist_marts\nfct_orders, dim_customers]
-    H --> I[Looker Studio\nOrders, delivery, revenue KPIs]
-    
-    J[Terraform\nGCS + BQ infrastructure] -.-> C
-    J -.-> E
-```
+
+![Pipeline Architecture](docs/architecture.svg)
 
 ## Architecture
 ```

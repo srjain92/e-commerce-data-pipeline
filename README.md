@@ -1,3 +1,8 @@
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![Terraform](https://img.shields.io/badge/Terraform-1.14-purple)
+![Airflow](https://img.shields.io/badge/Airflow-2.8.1-red)
+![BigQuery](https://img.shields.io/badge/BigQuery-GCP-orange)
+
 # E-Commerce Data Pipeline
 
 A production-grade batch data pipeline built on GCP that ingests, transforms, and analyzes the [Olist Brazilian E-Commerce dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) from Kaggle.

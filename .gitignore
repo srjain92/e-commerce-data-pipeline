@@ -211,3 +211,8 @@ __marimo__/
 *.tfvars
 
 airflow/logs/
+
+# dbt
+dbt/olist/target/
+dbt/olist/dbt_packages/
+dbt/olist/logs/

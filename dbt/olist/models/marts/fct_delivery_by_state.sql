@@ -1,4 +1,8 @@
+{{ config(
+    materialized='table',
+    cluster_by=['state']
+) }}
+
 select state,
-       round(avg(days_to_delivery), 2) as average_delivery_days
+       days_to_delivery
 from {{ ref('int_orders_enriched') }}
-group by 1

@@ -7,7 +7,7 @@
       "moby": false
     }
   },
-  "postCreateCommand": "pip install -r requirements.txt && mkdir -p ~/.gcp && echo $GCP_SERVICE_ACCOUNT_KEY > ~/.gcp/keyfile.json && chmod 600 ~/.gcp/keyfile.json",
+  "postCreateCommand": "pip install -r requirements.txt && mkdir -p ~/.gcp && printf '%s' \"$GCP_SERVICE_ACCOUNT_KEY\" > ~/.gcp/keyfile.json && chmod 600 ~/.gcp/keyfile.json",
   "remoteEnv": {
     "TF_VAR_credentials": "${localEnv:GCP_SERVICE_ACCOUNT_KEY}",
     "GCP_SERVICE_ACCOUNT_KEY": "${localEnv:GCP_SERVICE_ACCOUNT_KEY}"

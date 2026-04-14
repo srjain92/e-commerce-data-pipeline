@@ -3,6 +3,7 @@ import json
 from datetime import datetime
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.operators.bash import BashOperator
 from google.oauth2 import service_account
 from google.cloud import bigquery, storage
 from schema import SCHEMAS
@@ -71,4 +72,9 @@ with DAG(
         }
     )
 
-    load_orders >> load_order_reviews
+    dbt_run = BashOperator(
+    task_id="dbt_run",
+    bash_command="dbt run --profiles-dir /opt/airflow/dbt/olist --project-dir /opt/airflow/dbt/olist --target prod"
+    )
+
+    load_orders >> load_order_reviews >> dbt_run

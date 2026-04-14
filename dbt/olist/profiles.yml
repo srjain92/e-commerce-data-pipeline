@@ -1,0 +1,12 @@
+olist:
+  target: prod
+  outputs:
+    prod:
+      type: bigquery
+      method: service-account
+      project: clear-variety-492200-n0
+      dataset: olist
+      keyfile: /home/airflow/.gcp/keyfile.json
+      location: us-east1
+      threads: 4
+      timeout_seconds: 300

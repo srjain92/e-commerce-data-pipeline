@@ -11,6 +11,11 @@ from schema import SCHEMAS
 PROJECT_ID = os.getenv("GCP_PROJECT_ID")
 BUCKET_NAME = os.getenv("GCS_BUCKET_NAME")
 RAW_DATASET = "olist_raw"
+# These paths are relative to the INSIDE of the Docker container
+DBT_PROJECT_PATH = "/opt/airflow/dbt/olist"
+DBT_PROFILES_PATH = "/opt/airflow/dbt/olist"
+# DBT_PROJECT_PATH = "/workspaces/e-commerce-data-pipeline/dbt/olist"
+# DBT_PROFILES_PATH = "/workspaces/e-commerce-data-pipeline/dbt/olist"
 
 def get_clients():
     key_json = os.getenv("GCP_SERVICE_ACCOUNT_KEY")
@@ -33,8 +38,31 @@ def load_gcs_to_bq(gcs_uri: str, table_id: str, bq_client, table_name: str):
     load_job.result()
     print(f"✓ Loaded {gcs_uri} → {table_id}")
 
+def delete_existing_rows(table_name: str, execution_date: str, bq_client):
+    timestamp_col = {
+        "orders": "order_purchase_timestamp",
+        "order_reviews": "review_creation_date"
+    }[table_name]
+    
+    table_id = f"{PROJECT_ID}.{RAW_DATASET}.{table_name}"
+    
+    query = f"""
+        DELETE FROM `{table_id}`
+        WHERE DATE_TRUNC(CAST({timestamp_col} AS DATE), MONTH) = DATE_TRUNC(PARSE_DATE('%Y-%m', @execution_date), MONTH)
+    """
+    
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[
+            bigquery.ScalarQueryParameter("execution_date", "STRING", execution_date)
+        ]
+    )
+    
+    bq_client.query(query, job_config=job_config).result()
+    print(f"✓ Deleted {execution_date} rows from {table_id}")
+
 def load_partitioned_table(table_name: str, execution_date: str):
     bq_client, gcs_client = get_clients()
+    delete_existing_rows(table_name, execution_date, bq_client)
     bucket = gcs_client.bucket(BUCKET_NAME)
     blobs = bucket.list_blobs(prefix=f"raw/{table_name}/")
     for blob in blobs:
@@ -74,7 +102,13 @@ with DAG(
 
     dbt_run = BashOperator(
     task_id="dbt_run",
-    bash_command="dbt run --profiles-dir /opt/airflow/dbt/olist --project-dir /opt/airflow/dbt/olist --target prod"
+    bash_command=f"dbt build --select stg_orders+ stg_order_reviews --project-dir {DBT_PROJECT_PATH} --profiles-dir {DBT_PROFILES_PATH} --target prod",
+    # This explicitly injects the variable into the task's environment
+    env={
+        "GCP_KEY_PATH": "/home/airflow/keys/keyfile.json",
+        **os.environ  # This is a cleaner way to include all existing env vars
+        }
     )
+
 
     load_orders >> load_order_reviews >> dbt_run

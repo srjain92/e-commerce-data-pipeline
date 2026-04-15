@@ -216,3 +216,10 @@ airflow/logs/
 dbt/olist/target/
 dbt/olist/dbt_packages/
 dbt/olist/logs/
+
+# GCP Credentials
+.gcp/
+*.json
+
+# Local dbt user configs
+.user.yml

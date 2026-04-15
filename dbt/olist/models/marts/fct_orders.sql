@@ -1,10 +1,11 @@
 {{ config(
-    materialized='table',
+    materialized='incremental',
     partition_by={
         'field': 'purchased_at',
         'data_type': 'timestamp',
         'granularity': 'month'
-    }
+    },
+    incremental_strategy='insert_overwrite'
 ) }}
 
 with order_payments as (
@@ -19,6 +20,10 @@ select purchased_at,
        order_id
 from {{ ref('stg_orders') }}
 where order_status = 'delivered'
+
+{% if is_incremental() %}
+and purchased_at > (select coalesce(max(purchased_at), '1900-01-01') from {{ this }})
+{% endif %}
 )
 
 select o.purchased_at,
@@ -26,3 +31,4 @@ select o.purchased_at,
        coalesce(p.total_order_revenue, 0) as total_order_revenue
 from orders_delivered o
 left join order_payments p on o.order_id = p.order_id
+

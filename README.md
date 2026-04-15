@@ -1,7 +1,9 @@
 ![Python](https://img.shields.io/badge/Python-3.11-blue)
 ![Terraform](https://img.shields.io/badge/Terraform-1.14-purple)
 ![Airflow](https://img.shields.io/badge/Airflow-2.8.1-red)
+![dbt](https://img.shields.io/badge/dbt-1.8.7-orange)
 ![BigQuery](https://img.shields.io/badge/BigQuery-GCP-orange)
+![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-ff4b4b)
 
 # E-Commerce Data Pipeline
 
@@ -15,7 +17,6 @@ Build a scalable batch data pipeline on GCP to ingest, transform, and analyze Ol
 
 ![Pipeline Architecture](docs/ecommerce_pipeline_architecture.svg)
 
-## Architecture
 ```
 Kaggle (Source)
       ↓
@@ -27,9 +28,9 @@ Apache Airflow (orchestrates pipeline on monthly schedule)
       ↓
 BigQuery (olist_raw → olist_staging → olist_intermediate → olist_marts)
       ↓
-dbt (transforms and models data)
+dbt Core (transforms and models data, runs tests)
       ↓
-Looker Studio (dashboard)
+Streamlit (interactive dashboard)
 ```
 
 ## Tech Stack
@@ -42,19 +43,25 @@ Looker Studio (dashboard)
 | Infrastructure | Terraform |
 | Orchestration | Apache Airflow (Docker Compose) |
 | Warehouse | BigQuery |
-| Transformation | dbt |
-| BI | Looker Studio |
+| Transformation | dbt Core |
+| Dashboard | Streamlit + Plotly |
 | Reproducible Env | GitHub Codespaces |
-| CI/CD | GitHub Actions |
 
 ## Project Structure
+
 ```
 e-commerce-data-pipeline/
     .devcontainer/          # GitHub Codespaces config
     ingestion/              # Ingestion scripts
     airflow/                # Airflow DAGs and Docker Compose
-    dbt/                    # dbt models
+    dbt/                    # dbt project (profiles.yml + olist/)
+        olist/
+            models/
+                staging/    # 9 staging models (views)
+                intermediate/  # int_orders_enriched
+                marts/      # fct_orders, fct_seller_revenue, fct_delivery_by_state
     terraform/              # GCP infrastructure as code
+    streamlit_app/          # Dashboard app
 ```
 
 ## Prerequisites
@@ -82,6 +89,7 @@ Go to **Settings → Secrets and variables → Codespaces** and add:
 | `KAGGLE_KEY` | Kaggle API key |
 
 ### 3. Provision infrastructure
+
 ```bash
 cd terraform
 terraform init
@@ -94,6 +102,7 @@ This creates:
 - BigQuery datasets: `olist_raw`, `olist_staging`, `olist_intermediate`, `olist_marts`
 
 ### 4. Run ingestion
+
 ```bash
 python ingestion/partition_and_upload.py
 ```
@@ -101,6 +110,7 @@ python ingestion/partition_and_upload.py
 This downloads the Olist dataset from Kaggle, partitions transactional files by month, and uploads all files to GCS as Parquet.
 
 ### 5. Start Airflow
+
 ```bash
 cd airflow
 docker compose up -d
@@ -112,14 +122,24 @@ Access the Airflow UI at `http://localhost:8080` (username: `admin`, password: `
 
 Run in this order:
 
-1. **`dag_load_static`** — loads dimension tables once (customers, sellers, products etc.)
-2. **`dag_gcs_to_bq`** — loads partitioned tables monthly (orders, order_reviews)
+1. **`dag_load_static`** — loads dimension tables once (customers, sellers, products, order items, payments, geolocation). Also triggers dbt to build all static staging models on first run.
+2. **`dag_gcs_to_bq`** — runs monthly, loads partitioned `orders` and `order_reviews` tables, then automatically triggers `dbt build` to transform and test only the affected models.
+
+### 7. Run the dashboard
+
+```bash
+cd streamlit_app
+streamlit run app.py
+```
+
+Access the dashboard at `http://localhost:8501`.
 
 ## Data Flow
 
 ### GCS Structure
+
 ```
-gs://e-commerce-pipeline-raw/
+gs://<your-bucket>/
     raw/
         orders/
             orders_2016-09.parquet
@@ -143,9 +163,37 @@ gs://e-commerce-pipeline-raw/
 | Dataset | Description |
 |---|---|
 | `olist_raw` | Raw data loaded directly from GCS |
-| `olist_staging` | Cleaned and typed data (dbt) |
-| `olist_intermediate` | Joined and enriched models (dbt) |
-| `olist_marts` | Business-level models for dashboards (dbt) |
+| `olist_staging` | Cleaned and typed models — one per source table (views) |
+| `olist_intermediate` | Joined and enriched models — `int_orders_enriched` |
+| `olist_marts` | Business-level fact tables for dashboards |
+
+### dbt Models
+
+**Staging (9 models, views)** — light cleaning and type casting on top of raw tables. One model per source.
+
+**Intermediate (1 model)** — `int_orders_enriched` joins orders with customers and computes delivery time in days.
+
+**Marts (3 models, tables):**
+
+| Model | Materialization | Description |
+|---|---|---|
+| `fct_orders` | Incremental (insert_overwrite), partitioned by month | Row-level orders with revenue. Powers monthly order and revenue trends. |
+| `fct_delivery_by_state` | Table, clustered by state | Delivery time per order per state. Powers avg delivery time KPI. |
+| `fct_seller_revenue` | Table, clustered by seller_id | Revenue per order item per seller. Powers top 10 sellers KPI. |
+
+### KPIs
+
+- **Total orders and revenue by month** — sourced from `fct_orders`
+- **Average delivery time by state** — sourced from `fct_delivery_by_state`
+- **Top 10 sellers by revenue** — sourced from `fct_seller_revenue`
+
+## Pipeline Design Decisions
+
+**Idempotency** — `dag_gcs_to_bq` deletes existing rows for the execution month before loading, making every DAG run safe to re-trigger without duplicating data.
+
+**Incremental models** — `fct_orders` uses dbt's `insert_overwrite` incremental strategy, processing only the current month's partition on each run. Static dimension models are built once and not reprocessed.
+
+**Selective dbt execution** — Airflow runs `dbt build --select stg_orders+ stg_order_reviews` instead of rebuilding all models, avoiding unnecessary processing of static staging models on every monthly run.
 
 ## Status
 
@@ -153,6 +201,5 @@ gs://e-commerce-pipeline-raw/
 - [x] Infrastructure (Terraform)
 - [x] Airflow DAGs
 - [x] Raw data in BigQuery
-- [ ] dbt models
-- [ ] Looker Studio dashboard
-- [ ] CI/CD
+- [x] dbt models (staging, intermediate, marts)
+- [x] Streamlit dashboard

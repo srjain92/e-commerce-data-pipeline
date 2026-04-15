@@ -8,7 +8,7 @@ import os
 # --- Configuration ---
 PROJECT_ID = "clear-variety-492200-n0"
 DATASET_ID = "olist_marts"
-KEY_PATH = os.path.expanduser("~/.gcp/keyfile.json")
+KEY_PATH = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", os.path.expanduser("~/.gcp/keyfile.json"))
 
 @st.cache_resource
 def get_bq_client():
@@ -60,6 +60,7 @@ def get_sellers_data():
 
 st.title("📊 Olist Executive Dashboard")
 st.markdown("---")
+st.caption(f"Last refreshed: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M UTC')}")
 
 try:
     df_orders = get_orders_data()

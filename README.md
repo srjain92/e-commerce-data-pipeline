@@ -122,8 +122,10 @@ Access the Airflow UI at `http://localhost:8080` (username: `admin`, password: `
 
 Run in this order:
 
-1. **`dag_load_static`** — loads dimension tables once (customers, sellers, products, order items, payments, geolocation). Also triggers dbt to build all static staging models on first run.
-2. **`dag_gcs_to_bq`** — runs monthly, loads partitioned `orders` and `order_reviews` tables, then automatically triggers `dbt build` to transform and test only the affected models.
+1. **`dag_load_static`** — loads static dimension tables once (customers, sellers, products, order items, payments, geolocation). These never change and are not reprocessed.
+2. **`dag_gcs_to_bq`** — runs monthly, loads partitioned `orders` and `order_reviews` tables, then automatically triggers `dbt build --select stg_orders+ stg_order_reviews` to transform and test only the models affected by new data.
+
+> **Note:** After running `dag_load_static` for the first time, manually run `dbt build --select stg_customers stg_sellers stg_products stg_order_items stg_order_payments stg_geolocation stg_category_translation --target prod` once to populate static staging models in prod.
 
 ### 7. Run the dashboard
 

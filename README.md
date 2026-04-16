@@ -72,18 +72,9 @@ e-commerce-data-pipeline/
 
 ## Setup
 
-### 1. Fork and open in Codespaces
+### 1. Fork and add Codespaces secrets
 
-Fork this repo and open it in GitHub Codespaces. The dev container will automatically:
-- Install all Python dependencies (including dbt)
-- Install Terraform and Docker
-- Write the GCP service account keyfile to `~/.gcp/keyfile.json`
-
-> Make sure Codespaces secrets are added **before** opening the Codespace, as the setup runs once on container creation.
-
-### 2. Add Codespaces secrets
-
-Go to **Settings → Secrets and variables → Codespaces** and add:
+Fork this repo. Before opening in Codespaces, go to **Settings → Secrets and variables → Codespaces** and add:
 
 | Secret | Description |
 |---|---|
@@ -92,6 +83,13 @@ Go to **Settings → Secrets and variables → Codespaces** and add:
 | `GCP_PROJECT_ID` | GCP project ID |
 | `KAGGLE_USERNAME` | Kaggle username |
 | `KAGGLE_KEY` | Kaggle API key |
+
+### 2. Open in Codespaces
+
+Open the forked repo in GitHub Codespaces. The dev container will automatically:
+- Install all Python dependencies (including dbt)
+- Install Terraform and Docker
+- Write the GCP service account keyfile to `~/.gcp/keyfile.json`
 
 ### 3. Provision infrastructure
 

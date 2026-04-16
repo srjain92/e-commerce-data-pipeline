@@ -89,7 +89,7 @@ Fork this repo. Before opening in Codespaces, go to **Settings → Secrets and v
 Open the forked repo in GitHub Codespaces. The dev container will automatically:
 - Install all Python dependencies (including dbt)
 - Install Terraform and Docker
-- Write the GCP service account keyfile to `~/.gcp/keyfile.json`
+- Create the .gcp directory within the airflow/ folder and write the GCP service account keyfile to airflow/.gcp/keyfile.json
 
 ### 3. Provision infrastructure
 

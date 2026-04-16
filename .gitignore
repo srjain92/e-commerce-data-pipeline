@@ -220,6 +220,7 @@ dbt/olist/logs/
 # GCP Credentials
 .gcp/
 *.json
+airflow/.gcp/
 
 # Local dbt user configs
 .user.yml

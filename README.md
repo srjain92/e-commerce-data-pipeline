@@ -74,7 +74,12 @@ e-commerce-data-pipeline/
 
 ### 1. Fork and open in Codespaces
 
-Fork this repo and open it in GitHub Codespaces.
+Fork this repo and open it in GitHub Codespaces. The dev container will automatically:
+- Install all Python dependencies (including dbt)
+- Install Terraform and Docker
+- Write the GCP service account keyfile to `~/.gcp/keyfile.json`
+
+> Make sure Codespaces secrets are added **before** opening the Codespace, as the setup runs once on container creation.
 
 ### 2. Add Codespaces secrets
 
@@ -203,7 +208,7 @@ gs://<your-bucket>/
 
 **Storage Optimization**:
 * **Partitioning**: `fct_orders` is partitioned by `order_purchase_timestamp` (monthly), enabling dbt's `insert_overwrite` strategy to replace data at the partition level, significantly reducing processing costs during backfills.
-* **Clustering**: High-cardinality columns like `seller_id` and `customer_state` are used for clustering in Marts to optimize filter performance for the Streamlit dashboard.
+* **Clustering**: High-cardinality columns like `seller_id` and `state` are used for clustering in Marts to optimize filter performance for the Streamlit dashboard.
 
 **Selective dbt execution** — Airflow runs `dbt build --select stg_orders+ stg_order_reviews` instead of rebuilding all models, avoiding unnecessary processing of static staging models on every monthly run.
 

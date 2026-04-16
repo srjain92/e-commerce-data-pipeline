@@ -189,8 +189,6 @@ gs://<your-bucket>/
 
 **Data Quality**: The project includes 28 dbt tests (schema tests, uniqueness, and relationship checks) that run as part of the dbt build command in Airflow to ensure data integrity before it reaches the Marts.
 
-**Tests** — 28 dbt data tests across staging models covering uniqueness, not-null constraints, and accepted values. All tests run automatically via `dbt build` on every pipeline execution.
-
 ### KPIs
 
 - **Total orders and revenue by month** — sourced from `fct_orders`
@@ -217,3 +215,8 @@ gs://<your-bucket>/
 - [x] Raw data in BigQuery
 - [x] dbt models (staging, intermediate, marts)
 - [x] Streamlit dashboard
+
+## Acknowledgments
+
+* **Data Source**: A special thanks to [Olist](https://olist.com/) for releasing this dataset and to [Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) for hosting it.
+* **Community**: This project was developed as part of the [Data Engineering Zoomcamp](https://github.com/DataTalksClub/data-engineering-zoomcamp) provided by DataTalks.Club.

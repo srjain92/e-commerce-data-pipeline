@@ -187,6 +187,8 @@ gs://<your-bucket>/
 | `fct_delivery_by_state` | Table, clustered by state | Delivery time per order per state. Powers avg delivery time KPI. |
 | `fct_seller_revenue` | Table, clustered by seller_id | Revenue per order item per seller. Powers top 10 sellers KPI. |
 
+**Data Quality**: The project includes 28 dbt tests (schema tests, uniqueness, and relationship checks) that run as part of the dbt build command in Airflow to ensure data integrity before it reaches the Marts.
+
 **Tests** — 28 dbt data tests across staging models covering uniqueness, not-null constraints, and accepted values. All tests run automatically via `dbt build` on every pipeline execution.
 
 ### KPIs
@@ -200,6 +202,10 @@ gs://<your-bucket>/
 **Idempotency** — `dag_gcs_to_bq` deletes existing rows for the execution month before loading, making every DAG run safe to re-trigger without duplicating data.
 
 **Incremental models** — `fct_orders` uses dbt's `insert_overwrite` incremental strategy, processing only the current month's partition on each run. Static dimension models are built once and not reprocessed.
+
+**Storage Optimization**:
+* **Partitioning**: `fct_orders` is partitioned by `order_purchase_timestamp` (monthly), enabling dbt's `insert_overwrite` strategy to replace data at the partition level, significantly reducing processing costs during backfills.
+* **Clustering**: High-cardinality columns like `seller_id` and `customer_state` are used for clustering in Marts to optimize filter performance for the Streamlit dashboard.
 
 **Selective dbt execution** — Airflow runs `dbt build --select stg_orders+ stg_order_reviews` instead of rebuilding all models, avoiding unnecessary processing of static staging models on every monthly run.
 

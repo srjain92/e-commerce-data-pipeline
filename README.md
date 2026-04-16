@@ -187,6 +187,8 @@ gs://<your-bucket>/
 | `fct_delivery_by_state` | Table, clustered by state | Delivery time per order per state. Powers avg delivery time KPI. |
 | `fct_seller_revenue` | Table, clustered by seller_id | Revenue per order item per seller. Powers top 10 sellers KPI. |
 
+**Tests** — 28 dbt data tests across staging models covering uniqueness, not-null constraints, and accepted values. All tests run automatically via `dbt build` on every pipeline execution.
+
 ### KPIs
 
 - **Total orders and revenue by month** — sourced from `fct_orders`

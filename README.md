@@ -136,6 +136,10 @@ streamlit run app.py
 
 Access the dashboard at `http://localhost:8501`.
 
+## Dashboard Preview
+
+![Dashboard](docs/dashboard_screenshot.png)
+
 ## Data Flow
 
 ### GCS Structure
